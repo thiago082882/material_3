@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -32,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -47,6 +49,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
+import br.thiago.material3.components.BottomNavigationBar
+import br.thiago.material3.components.FavoriteScreen
+import br.thiago.material3.components.SettingScreen
 import br.thiago.material3.ui.theme.Material3Theme
 import coil.compose.AsyncImage
 
@@ -57,9 +63,25 @@ class MainActivity : ComponentActivity() {
         setContent {
             Material3Theme {
 
+                var showDialog by remember {
+                    mutableStateOf(false)
+                }
+
+                var selectedItemIndex by remember {
+                    mutableStateOf(0)
+                }
+                if (showDialog) {
+                    Material3AlertDialog(
+                        onDismiss = {
+                            showDialog = false
+                        }
+                    )
+                }
+
                 Scaffold(
                     floatingActionButton = {
                         FloatingActionButton(onClick = {
+                            showDialog = true
                         }) {
                             Icon(imageVector = Icons.Outlined.Call, contentDescription = null)
 
@@ -70,7 +92,11 @@ class MainActivity : ComponentActivity() {
                         Material3TopAppBar()
                     },
                     bottomBar = {
-                        MaterialBottomBar()
+                        BottomNavigationBar(
+                            onItemSelected = { actualIndex ->
+                                selectedItemIndex = actualIndex
+                            }
+                        )
                     }
                 ) { paddingValues ->
                     Box(
@@ -81,16 +107,79 @@ class MainActivity : ComponentActivity() {
                             )
                     ) {
                         Column {
-                            MaterialDogCard()
-                            MaterialDogCard()
+                            when (selectedItemIndex) {
+                                0 -> {
+                                    MaterialDogCard()
+                                    MaterialDogCard()
+                                }
+
+                                1 -> {
+                                   FavoriteScreen()
+                                }
+
+                                2 -> {
+                                    Text(text = "Notifications")
+                                }
+
+                                3 -> {
+                                   SettingScreen()
+                                }
+
+                            }
                         }
+
                     }
-
-
                 }
             }
         }
     }
+}
+
+//https://m3.material.io/components/dialogs/overview
+@Composable
+fun Material3AlertDialog(
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false
+        ),
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        iconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = {
+                onDismiss()
+            }) {
+                Text(text = "Yes,Call My Dog")
+
+            }
+
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                onDismiss()
+            }) {
+                Text(text = "Nop,not yet")
+
+            }
+        },
+        title = {
+            Text(text = "Title Call My Dog")
+        },
+        text = {
+            Text(text = "Are you sure you want to call your dog")
+        },
+        icon = {
+            Icon(imageVector = Icons.Outlined.Call, contentDescription = null)
+        }
+
+
+    )
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -140,7 +229,7 @@ fun MaterialDogCard() {
                 Text(
                     text = desc,
                     fontSize = 15.sp,
-                    maxLines = if(expanded) 20 else 4,
+                    maxLines = if (expanded) 20 else 4,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp)
                 )
